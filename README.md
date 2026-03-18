@@ -22,10 +22,14 @@ Antwerp has enjoyed a relatively simple, fishing-based economy for decades. Howe
 
 ## Personas
 
-### Persona 1: COOTEFOO Board Investigator
+### Elena Petrova (pro-fishing)
 
-Two accusations (TROUT and FILAH) have been filed alleging bias among committee members. Using all available data, investigate whether there is evidence of bias in member actions.
+Elena Petrova is a representative of Fishing is Living and Heritage (FILAH). She is concerned that the recent enthusiasm for tourism is causing the board to undervalue the fishing sector, despite its long-standing economic and cultural importance to Saltmere. She wants to understand whether committee decisions, and investments systematically disadvantage fishing interests. She is looking for clear visual evidence that shows whether fishing is being neglected, misrepresented, or treated unfairly compared with tourism.
 
-### Persona 2: Investigative Journalist
+### Lucas Moreau (pro-tourism)
 
-Two accusations (TROUT and FILAH) have been filed. Additional data has since been collected independently (by the journalist). Given this fuller picture, are the accusations strengthened, weakened, or unchanged?
+Lucas Moreau works with Tourism Raises OceanUs Together (TROUT). He believes Saltmere's future depends on embracing tourism as a growing source of jobs, income, and resilience, and he worries that the board remains too attached to the traditional fishing economy. He wants to see whether committee behaviour and strategic attention are disproportionately favouring fishing over emerging opportunities in tourism. He needs visual summaries that reveal whether the board is holding back change and failing to respond to the town's evolving economic reality.
+
+### Marta Kowalska (journalist)
+
+Marta Kowalska is an investigative journalist covering the accusations made by both FILAH and TROUT. She is not committed to either side and wants to build an evidence-based account of whether bias is present, exaggerated, or unsupported. She needs to compare claims from the different groups against the broader data collected by both the government and independent reporting. She wants visualisations that help her identify patterns, inconsistencies, and possible conflicts of interest, so that she can communicate a balanced and credible story to the public.
