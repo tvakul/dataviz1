@@ -1,0 +1,126 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.21.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "d8ad654253d23cfa8c9eca118b94ea72",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "21d426fc2d3259eedc136aad138186c3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "CiSb",
+      "code_hash": "cef8fbcacf2354a6d1c99a67359db85d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"sentiment-map\">Sentiment map</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "e769c0af4b064033f61326e4a96b537a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='bkHC-0' random-id='4d879139-cb22-1564-a31f-9f1edb9506bf'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;&#92;&quot;:2,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Seal&#92;&quot;,&#92;&quot;name&#92;&quot;:&#92;&quot;Seal&#92;&quot;,&#92;&quot;role&#92;&quot;:&#92;&quot;Committee Chair&#92;&quot;,&#92;&quot;avg_sentiment&#92;&quot;:0.009999999999999998,&#92;&quot;honesty&#92;&quot;:true,&#92;&quot;idx&#92;&quot;:1},{&#92;&quot;&#92;&quot;:4,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Ed Helpsford&#92;&quot;,&#92;&quot;name&#92;&quot;:&#92;&quot;Ed Helpsford&#92;&quot;,&#92;&quot;role&#92;&quot;:&#92;&quot;Vice Chair&#92;&quot;,&#92;&quot;avg_sentiment&#92;&quot;:0.25,&#92;&quot;honesty&#92;&quot;:true,&#92;&quot;idx&#92;&quot;:2},{&#92;&quot;&#92;&quot;:1,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Simone Kat&#92;&quot;,&#92;&quot;name&#92;&quot;:&#92;&quot;Simone Kat&#92;&quot;,&#92;&quot;role&#92;&quot;:&#92;&quot;Member&#92;&quot;,&#92;&quot;avg_sentiment&#92;&quot;:-0.5299999999999999,&#92;&quot;honesty&#92;&quot;:true,&#92;&quot;idx&#92;&quot;:3},{&#92;&quot;&#92;&quot;:0,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;name&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;role&#92;&quot;:&#92;&quot;Member&#92;&quot;,&#92;&quot;avg_sentiment&#92;&quot;:-0.47058823529411764,&#92;&quot;honesty&#92;&quot;:false,&#92;&quot;idx&#92;&quot;:3},{&#92;&quot;&#92;&quot;:5,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Carol Limpet&#92;&quot;,&#92;&quot;name&#92;&quot;:&#92;&quot;Carol Limpet&#92;&quot;,&#92;&quot;role&#92;&quot;:&#92;&quot;Member&#92;&quot;,&#92;&quot;avg_sentiment&#92;&quot;:-0.6818181818181818,&#92;&quot;honesty&#92;&quot;:true,&#92;&quot;idx&#92;&quot;:3},{&#92;&quot;&#92;&quot;:3,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Teddy Goldstein&#92;&quot;,&#92;&quot;name&#92;&quot;:&#92;&quot;Teddy Goldstein&#92;&quot;,&#92;&quot;role&#92;&quot;:&#92;&quot;Treasurer&#92;&quot;,&#92;&quot;avg_sentiment&#92;&quot;:0.71875,&#92;&quot;honesty&#92;&quot;:true,&#92;&quot;idx&#92;&quot;:6}]&quot;' data-total-rows='6' data-total-columns='6' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;people_id&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;name&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;role&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;avg_sentiment&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;honesty&quot;,[&quot;boolean&quot;,&quot;bool&quot;]],[&quot;idx&quot;,[&quot;integer&quot;,&quot;int64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[[&quot;&quot;,[&quot;integer&quot;,&quot;int64&quot;]]]' data-has-stable-row-id='false' data-lazy='false' data-preload='false' data-download-file-name='&quot;df&quot;'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "fd61e93cac68ff78d388cddbe5b29544",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&#x27;{&quot;people_id&quot;:{&quot;2&quot;:&quot;Seal&quot;,&quot;4&quot;:&quot;Ed Helpsford&quot;,&quot;1&quot;:&quot;Simone Kat&quot;,&quot;0&quot;:&quot;Tante Titan&quot;,&quot;5&quot;:&quot;Carol Limpet&quot;,&quot;3&quot;:&quot;Teddy Goldstein&quot;},&quot;name&quot;:{&quot;2&quot;:&quot;Seal&quot;,&quot;4&quot;:&quot;Ed Helpsford&quot;,&quot;1&quot;:&quot;Simone Kat&quot;,&quot;0&quot;:&quot;Tante Titan&quot;,&quot;5&quot;:&quot;Carol Limpet&quot;,&quot;3&quot;:&quot;Teddy Goldstein&quot;},&quot;role&quot;:{&quot;2&quot;:&quot;Committee Chair&quot;,&quot;4&quot;:&quot;Vice Chair&quot;,&quot;1&quot;:&quot;Member&quot;,&quot;0&quot;:&quot;Member&quot;,&quot;5&quot;:&quot;Member&quot;,&quot;3&quot;:&quot;Treasurer&quot;},&quot;avg_sentiment&quot;:{&quot;2&quot;:0.01,&quot;4&quot;:0.25,&quot;1&quot;:-0.53,&quot;0&quot;:-0.4705882353,&quot;5&quot;:-0.6818181818,&quot;3&quot;:0.71875},&quot;honesty&quot;:{&quot;2&quot;:true,&quot;4&quot;:true,&quot;1&quot;:true,&quot;0&quot;:false,&quot;5&quot;:true,&quot;3&quot;:true},&quot;idx&quot;:{&quot;2&quot;:1,&quot;4&quot;:2,&quot;1&quot;:3,&quot;0&quot;:3,&quot;5&quot;:3,&quot;3&quot;:6}}&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "2380b00318e80c1bba7a590953946235",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='PKri-0' random-id='c4a36fcc-5faf-c900-7f19-83e5b54b17f1'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;seafood_festival&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;seafood_festival_Meeting_3_Report_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:0.0,&#92;&quot;sentiment_raw&#92;&quot;:0.75,&#92;&quot;industry&#92;&quot;:&#92;&quot;both&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;waterfront_market&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;waterfront_market_Travel_Harborfront_Market_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.25,&#92;&quot;sentiment_raw&#92;&quot;:0.25,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;waterfront_market&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;waterfront_market_Meeting_8_Gather_Feedback_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.25,&#92;&quot;sentiment_raw&#92;&quot;:0.25,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;waterfront_market&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;waterfront_market_Travel_Harborfront_Market_Completed_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.25,&#92;&quot;sentiment_raw&#92;&quot;:0.25,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;concert&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;concert_Travel_Packland_Elementary_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.5,&#92;&quot;sentiment_raw&#92;&quot;:0.5,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;concert&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;concert_Travel_Paakland_Elementary_Completed_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.5,&#92;&quot;sentiment_raw&#92;&quot;:0.5,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;concert&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;concert_Meeting_16_Feedback_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.5,&#92;&quot;sentiment_raw&#92;&quot;:0.5,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;concert&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;concert_Meeting_16_Communication_Complaints_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Tante Titan&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.5,&#92;&quot;sentiment_raw&#92;&quot;:0.5,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:false},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;expanding_tourist_wharf&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;expanding_tourist_wharf_Meeting_7_Initial_Views_Discussion&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Seal&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.1,&#92;&quot;sentiment_raw&#92;&quot;:0.1,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:true},{&#92;&quot;topic_id&#92;&quot;:&#92;&quot;expanding_tourist_wharf&#92;&quot;,&#92;&quot;target_id&#92;&quot;:&#92;&quot;expanding_tourist_wharf_Travel_Harbor_Route_Solutions_Discussion_Tourist&#92;&quot;,&#92;&quot;target_type&#92;&quot;:&#92;&quot;discussion&#92;&quot;,&#92;&quot;people_id&#92;&quot;:&#92;&quot;Simone Kat&#92;&quot;,&#92;&quot;sentiment&#92;&quot;:-0.5,&#92;&quot;sentiment_raw&#92;&quot;:0.5,&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;in_gov_data&#92;&quot;:true}]&quot;' data-total-rows='118' data-total-columns='8' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;topic_id&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;target_id&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;target_type&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;people_id&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;sentiment&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;sentiment_raw&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;industry&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;in_gov_data&quot;,[&quot;boolean&quot;,&quot;bool&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false' data-download-file-name='&quot;df&quot;'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "9690ae8f50782814c2090f7799d487c6",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='Xref-0' random-id='f2f095c0-4d23-19d3-f862-78ed710af401'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;industry&#92;&quot;:&#92;&quot;both&#92;&quot;,&#92;&quot;topic_id&#92;&quot;:1,&#92;&quot;target_id&#92;&quot;:1,&#92;&quot;target_type&#92;&quot;:1,&#92;&quot;people_id&#92;&quot;:1,&#92;&quot;sentiment&#92;&quot;:1,&#92;&quot;sentiment_raw&#92;&quot;:1,&#92;&quot;in_gov_data&#92;&quot;:1},{&#92;&quot;industry&#92;&quot;:&#92;&quot;fishing&#92;&quot;,&#92;&quot;topic_id&#92;&quot;:4,&#92;&quot;target_id&#92;&quot;:4,&#92;&quot;target_type&#92;&quot;:4,&#92;&quot;people_id&#92;&quot;:4,&#92;&quot;sentiment&#92;&quot;:4,&#92;&quot;sentiment_raw&#92;&quot;:4,&#92;&quot;in_gov_data&#92;&quot;:4},{&#92;&quot;industry&#92;&quot;:&#92;&quot;tourism&#92;&quot;,&#92;&quot;topic_id&#92;&quot;:5,&#92;&quot;target_id&#92;&quot;:5,&#92;&quot;target_type&#92;&quot;:5,&#92;&quot;people_id&#92;&quot;:5,&#92;&quot;sentiment&#92;&quot;:5,&#92;&quot;sentiment_raw&#92;&quot;:5,&#92;&quot;in_gov_data&#92;&quot;:5}]&quot;' data-total-rows='3' data-total-columns='7' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;topic_id&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;target_id&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;target_type&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;people_id&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;sentiment&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;sentiment_raw&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;in_gov_data&quot;,[&quot;integer&quot;,&quot;int64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-show-data-types='true' data-show-page-size-selector='false' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[[&quot;industry&quot;,[&quot;string&quot;,&quot;object&quot;]]]' data-has-stable-row-id='false' data-lazy='false' data-preload='false' data-download-file-name='&quot;df&quot;'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "f806a5d7519002113ca7e3ca63ce929c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<iframe src='./@file/124115-51684-QBthXRZl.html' width='100%' height='1200px' onload='__resizeIframe(this)' frameborder='0'></iframe>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

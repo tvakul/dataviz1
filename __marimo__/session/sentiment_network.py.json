@@ -1,0 +1,74 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.21.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "bca7a98d0d73907c1890efca5fa52b26",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "366af308a1e0f033139211fcec980fe7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"sentiment-network-discussions-plans-topics\">Sentiment Network \u2014 Discussions, Plans &amp; Topics</h1>\n<ul>\n<li><strong>Circles</strong> = discussions \u00b7 <strong>Squares</strong> = plans</li>\n<li><strong>Node colour</strong> \u2014 green = honest, red = not honest</li>\n<li><strong>Node size</strong> \u2014 bigger = more linked plans</li>\n<li><strong>Edge colour</strong> \u2014 green = positive sentiment, red = negative</li>\n<li><strong>Edge width</strong> \u2014 magnitude of sentiment</li>\n<li><strong>Dashed edge</strong> \u2014 hidden from the GUI</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "f03f5b59206a0eae98329813d02c8a53",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "a7e1260807dd75d48aa47164e3c7536b",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 's' was defined by another cell",
+          "traceback": []
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "06195d4ba39fbe644490e0f36192626f",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "multiple-defs",
+          "evalue": "The variable 's' was defined by another cell",
+          "traceback": []
+        }
+      ],
+      "console": []
+    }
+  ]
+}
