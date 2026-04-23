@@ -120,7 +120,7 @@ def _(mo, pd):
     try:
         bias_persons = pd.read_json(str(mo.notebook_location() / "data" / "bias_persons.json"))
     except:
-        bias_persons = pd.read_json("https://raw.githubusercontent.com/tvakul/dataviz1/refs/heads/main/bias_persons.json") 
+        bias_persons = pd.read_json("https://raw.githubusercontent.com/tvakul/dataviz1/refs/heads/main/data/bias_persons.json") 
 
     # bias_persons
     return (bias_persons,)
