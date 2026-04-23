@@ -192,9 +192,18 @@ def _(mo, pd):
 
 
 @app.cell
-def _(pd, remapped_location, time_trip_spend):
-    time_location_remapped = pd.merge(time_trip_spend[["trip_id", "date", "people_id", "place_id", "name", "time", "time_spend", "zone", 'lat', 'lon']], remapped_location.rename(columns={"zone": "zone_remapped"}),
-                on="place_id", how="left").fillna({"zone_remapped": "other"})
+def _(pd, remapped_location, sel_end, sel_start, time_trip_spend):
+    # Ensure column is consistent with slider types (Timestamp)
+    _col = pd.to_datetime(time_trip_spend['date'])
+    _mask = (_col >= sel_start) & (_col <= sel_end)
+    filtered_tts = time_trip_spend[_mask]
+
+    time_location_remapped = pd.merge(
+        filtered_tts[["trip_id", "date", "people_id", "place_id", "name", "time", "time_spend", "zone", 'lat', 'lon']], 
+        remapped_location.rename(columns={"zone": "zone_remapped"}),
+        on="place_id", 
+        how="left"
+    ).fillna({"zone_remapped": "other"})
     time_location_remapped
     return (time_location_remapped,)
 
@@ -233,12 +242,41 @@ def _(pd, time_location_remapped):
 
 
 @app.cell
-def _(mo):
+def _(mo, pd, time_trip_spend):
+    # Get unique sorted Timestamps for the slider
+    unique_dates = pd.to_datetime(time_trip_spend['date']).sort_values().unique()
+    num_days = len(unique_dates)
+
     knn_dist_slider = mo.ui.slider(start=0, stop=5, step=0.1, value=1.5, show_value=True)
     knn_num_slider = mo.ui.slider(start=0, stop=10, step=1, value=5, show_value=True)
     mode_dropdown = mo.ui.dropdown(options=['time_spend', 'visits'], value='visits')
     show_others = mo.ui.checkbox(value=False, label="Show 'Others'")
-    return knn_dist_slider, knn_num_slider, mode_dropdown, show_others
+
+    date_slider = mo.ui.range_slider(
+        start=0, 
+        stop=num_days - 1, 
+        step=1, 
+        value=(0, num_days - 1), 
+        label=f"Filter Date Range"
+    )
+
+
+    return (
+        date_slider,
+        knn_dist_slider,
+        knn_num_slider,
+        mode_dropdown,
+        show_others,
+        unique_dates,
+    )
+
+
+@app.cell
+def _(date_slider, unique_dates):
+    # Resolve actual dates from indices
+    sel_start = unique_dates[int(date_slider.value[0])]
+    sel_end = unique_dates[int(date_slider.value[1])]
+    return sel_end, sel_start
 
 
 @app.cell
@@ -350,7 +388,6 @@ def _(svg):
 @app.cell
 def _(
     draw_person,
-    fmt,
     graph_2_1_data,
     graph_2_2_data,
     math,
@@ -406,7 +443,7 @@ def _(
             return f"{days} days, {time_str}"
 
     def create_dashboard(mode='visits', show_others=False):
-        W, H = 1200, 900
+        W, H = 1000, 800
         els = []
 
         # Dynamic Titles
@@ -431,7 +468,7 @@ def _(
         name_map = {'industrial': 'fishing', 'tourism': 'tourism', 'other': 'other'}
 
         # --- C5: Shoreline Bias ---
-        c5_x, c5_y, c5_w, c5_h = 50, 50, 1100, 310
+        c5_x, c5_y, c5_w, c5_h = 40, 20, 920, 250
         els.append(svg.Rect(x=c5_x, y=c5_y, width=c5_w, height=c5_h, fill="#f8f9f9", stroke="#ccc", rx=10))
         els.append(svg.Text(x=c5_x+20, y=c5_y+30, text=title_c5, font_size=20, font_weight="bold", fill="#2c3e50"))
 
@@ -448,16 +485,16 @@ def _(
         border_x = c5_x + border_ratio * c5_w
 
         # Draw Sea and Shore with labels
-        els.append(svg.Rect(x=c5_x, y=c5_y+80, width=border_ratio*c5_w, height=160, fill="#fdedec", opacity=0.8))
-        els.append(svg.Rect(x=border_x, y=c5_y+80, width=(1-border_ratio)*c5_w, height=160, fill="#2ca02c", opacity=0.15))
+        els.append(svg.Rect(x=c5_x, y=c5_y+60, width=border_ratio*c5_w, height=130, fill="#fdedec", opacity=0.8))
+        els.append(svg.Rect(x=border_x, y=c5_y+60, width=(1-border_ratio)*c5_w, height=130, fill="#2ca02c", opacity=0.15))
 
         # Labels for the regions - Moved to the top to avoid overlap
-        els.append(svg.Text(x=c5_x + 15, y=c5_y+100, text="TOURISM BIAS (-)", text_anchor="start", font_size=14, font_weight="bold", fill="#943126"))
-        els.append(svg.Text(x=c5_x+c5_w - 15, y=c5_y+100, text="(+) FISHING BIAS", text_anchor="end", font_size=14, font_weight="bold", fill="#186a3b"))
+        els.append(svg.Text(x=c5_x + 15, y=c5_y+80, text="TOURISM BIAS (-)", text_anchor="start", font_size=12, font_weight="bold", fill="#943126"))
+        els.append(svg.Text(x=c5_x+c5_w - 15, y=c5_y+80, text="(+) FISHING BIAS", text_anchor="end", font_size=12, font_weight="bold", fill="#186a3b"))
 
         # Border line
-        els.append(svg.Line(x1=border_x, y1=c5_y+80, x2=border_x, y2=c5_y+240, stroke="#95a5a6", stroke_width=1, stroke_dasharray="4"))
-        els.append(svg.Text(x=border_x, y=c5_y+75, text="NEUTRAL", text_anchor="middle", font_size=11, font_weight="bold", fill="#7f8c8d"))
+        els.append(svg.Line(x1=border_x, y1=c5_y+60, x2=border_x, y2=c5_y+190, stroke="#95a5a6", stroke_width=1, stroke_dasharray="4"))
+        els.append(svg.Text(x=border_x, y=c5_y+55, text="NEUTRAL", text_anchor="middle", font_size=10, font_weight="bold", fill="#7f8c8d"))
 
         # Person icons - Smaller and cleaner
         for i, (_, row) in enumerate(data_c5.iterrows()):
@@ -467,7 +504,7 @@ def _(
             y_off = (i % 2) * 55
 
             els.append(svg.G(class_=f"clickable-person pid-{pid_safe}", style="cursor:pointer", elements=[
-                draw_person(x, c5_y+215 - y_off, 0.7, name=row['people_id'])
+                draw_person(x, c5_y+175 - y_off, 0.6, name=row['people_id'])
             ]))
 
         # X-Axis at the bottom
@@ -482,7 +519,7 @@ def _(
         els.append(svg.Text(x=c5_x+c5_w-100, y=ax_y-8, text="PRO-FISHING (+) →", text_anchor="end", font_size=11, font_weight="bold", fill="#2ca02c"))
 
         # --- C6: Map ---
-        c6_x, c6_y, c6_w, c6_h = 50, 420, 525, 450
+        c6_x, c6_y, c6_w, c6_h = 40, 300, 440, 480
         els.append(svg.Rect(x=c6_x, y=c6_y, width=c6_w, height=c6_h, fill="#fdfefe", stroke="#ccc", rx=10))
         els.append(svg.Text(x=c6_x+20, y=c6_y+30, text=title_c6, font_size=18, font_weight="bold", fill="#2c3e50"))
 
@@ -492,10 +529,10 @@ def _(
             # Standard Orientation: X is horizontal (-166 range), Y is vertical (39 range)
             x_min, x_max = -166.3, -164.2
             y_min, y_max = 38.7, 39.9
-            
+
             x_pct = (lon_val - x_min) / (x_max - x_min)
             y_pct = (lat_val - y_min) / (y_max - y_min)
-            
+
             px = c6_x + 40 + x_pct * (c6_w - 80)
             py = c6_y + c6_h - 40 - y_pct * (c6_h - 80) # Y starts from bottom in our pct
             return px, py
@@ -505,7 +542,6 @@ def _(
                 if feat['properties'].get('Name') in ['Suna Island', 'Thalassa Retreat']:
                     if feat['geometry']['type'] == 'Polygon':
                         for poly in feat['geometry']['coordinates']:
-                            # GeoJSON is [c0, c1] -> [-166, 39]. Standard: X=c0, Y=c1
                             pts = " ".join([f"{project(c[0], c[1])[0]},{project(c[0], c[1])[1]}" for c in poly])
                             els.append(svg.Polygon(points=pts, fill="#d5f5e3", stroke="#27ae60", stroke_width=0.5))
 
@@ -557,12 +593,12 @@ def _(
         els.append(total_group)
 
         # --- C7: Trip split ---
-        c7_x, c7_y, c7_w, c7_h = 625, 420, 525, 450
+        c7_x, c7_y, c7_w, c7_h = 520, 300, 440, 480
         els.append(svg.Rect(x=c7_x, y=c7_y, width=c7_w, height=c7_h, fill="#fdfefe", stroke="#ccc", rx=10))
         els.append(svg.Text(x=c7_x+20, y=c7_y+30, text=title_c7, font_size=18, font_weight="bold", fill="#2c3e50"))
 
         cx, cy = c7_x + c7_w*0.5, c7_y + c7_h*0.5 + 20
-        inner_r, mid_r, outer_r = 60, 90, 160
+        inner_r, mid_r, outer_r = 50, 80, 150
 
         def draw_split(df, pid_safe, is_total=False):
             g = svg.G(id=f"split_{pid_safe}", style="display:none" if not is_total else "display:block", class_="split-info", elements=[])
@@ -590,11 +626,11 @@ def _(
             else:
                 center_main = f"{total:.0f}"
                 center_sub = "visits"
-            
+
             # Inner Ring (Donut)
             header = "Total Overview" if is_total else "Member Overview"
             donut_info_base = f"{header} | Mode: {mode.title()} | Total: {fmt(total)} | Primary: {z_sum.idxmax().capitalize() if not z_sum.empty else 'N/A'}"
-            
+
             cur_a = -math.pi/2
             if len(z_sum) == 1:
                 zone, val = list(z_sum.items())[0]
@@ -609,7 +645,7 @@ def _(
                     if swp < 0.01: continue
                     pct = (val/total)*100 if total > 0 else 0
                     seg_info = f"{donut_info_base} | {zone.capitalize()}: {pct:.1f}%"
-                    
+
                     x1, y1 = cx + inner_r*math.cos(cur_a), cy + inner_r*math.sin(cur_a)
                     x2, y2 = cx + inner_r*math.cos(cur_a+swp), cy + inner_r*math.sin(cur_a+swp)
                     x3, y3 = cx + mid_r*math.cos(cur_a+swp), cy + mid_r*math.sin(cur_a+swp)
@@ -625,38 +661,58 @@ def _(
             # Outer Ring (Radial Bars) - Group by Trip and Date
             # We want each slice to represent a trip
             trip_data = m_data.groupby(['date', 'trip_id', 'zone_mapped'])['val'].sum().unstack(fill_value=0)
-            
+
             # Ensure all categories exist as columns to avoid KeyError
             categories = ['fishing', 'tourism', 'other']
             trip_data = trip_data.reindex(columns=categories, fill_value=0).reset_index()
-            
+
             # Sort by date then trip_id
             trip_data = trip_data.sort_values(['date', 'trip_id'])
-            
+
             n_t = len(trip_data)
             if n_t > 0:
                 a_st = (2*math.pi) / n_t
                 m_t_v = trip_data[categories].sum(axis=1).max() or 1
-                
+
+                # Radial Y-Axis (Scale Rings)
+                scale_steps = [0.5, 1.0]
+                base_r = mid_r + 5
+                max_h = (outer_r - mid_r - 10)
+
+                # Background circles
+                for step in scale_steps:
+                    r_val = base_r + step * max_h
+                    g.elements.append(svg.Circle(cx=cx, cy=cy, r=r_val, fill="none", stroke="#eee", stroke_width=1, stroke_dasharray="2,2"))
+
+                # Standard Axis Line (Vertical)
+                g.elements.append(svg.Line(x1=cx, y1=cy-base_r, x2=cx, y2=cy-(base_r+max_h), stroke="#ccc", stroke_width=1))
+
+                # Labels for the axis
+                for step in [0, 0.5, 1.0]:
+                    r_val = base_r + step * max_h
+                    val_at_step = step * m_t_v
+                    label_text = f"{val_at_step:.0f}" if mode == 'visits' else f"{val_at_step:.1f}h"
+                    g.elements.append(svg.Text(x=cx+5, y=cy-r_val+4, text=label_text, font_size=9, fill="#999", font_weight="bold"))
+
                 for i, (_, row) in enumerate(trip_data.iterrows()):
                     ang_b = -math.pi/2 + i * a_st
                     cur_br = mid_r + 5
                     t_val = row[categories].sum()
-                    
+
                     date_info = f"Trip Details | ID: {row['trip_id']} | Date: {row['date'].strftime('%Y-%m-%d')} | Total: {fmt(t_val)}"
                     # Create a group for the whole trip slice for easier hovering
                     trip_g = svg.G(elements=[])
-                    
+
                     for zone in categories:
                         val = row.get(zone, 0)
                         h_v = (val/m_t_v)*(outer_r - mid_r - 10)
                         if h_v < 0.5: continue
-                        
+
                         x1, y1 = cx + cur_br*math.cos(ang_b), cy + cur_br*math.sin(ang_b)
                         x2, y2 = cx + cur_br*math.cos(ang_b+a_st*0.9), cy + cur_br*math.sin(ang_b+a_st*0.9)
                         x3, y3 = cx + (cur_br+h_v)*math.cos(ang_b+a_st*0.9), cy + (cur_br+h_v)*math.sin(ang_b+a_st*0.9)
                         x4, y4 = cx + (cur_br+h_v)*math.cos(ang_b), cy + (cur_br+h_v)*math.sin(ang_b)
-                        
+
                         z_info = f"{date_info} | Focus: {zone.capitalize()} | Value: {fmt(val)}"
                         trip_g.elements.append(DataPolygon(
                             points=f"{x1},{y1} {x2},{y2} {x3},{y3} {x4},{y4}", 
@@ -695,10 +751,13 @@ def _(
 @app.cell
 def _(
     create_dashboard,
+    date_slider,
     knn_dist_slider,
     knn_num_slider,
     mo,
     mode_dropdown,
+    sel_end,
+    sel_start,
     show_others,
 ):
     svg_str = create_dashboard(mode_dropdown.value, show_others.value)
@@ -856,32 +915,34 @@ def _(
     """
 
     mo.vstack([
-        mo.vstack([
-            mo.hstack([
-                mo.md("Remapper: max distance limit for reference (in km)"),
-                knn_dist_slider
-            ], align="start", justify="start"),
-            mo.hstack([
-                mo.md("Remapper: number of nearnest reference locations"),
-                knn_num_slider
-            ], align="start", justify="start") ,
-            mo.hstack([
-                mo.md("Comparison mode"),
-                mode_dropdown,
-            ], align="start", justify="start"),
-            mo.hstack([
-                mo.md("Show 'Others'"),
-                show_others
-            ], align="start", justify="start")
-        ]),
-        mo.iframe(svg_str + _JS, width="1200px", height="920px")
+        mo.hstack([
+            mo.vstack([
+                mo.hstack([
+                    mo.md("Remapper: max distance limit (km)"),
+                    knn_dist_slider
+                ], align="center"),
+                mo.hstack([
+                    mo.md("Remapper: nearest locations"),
+                    knn_num_slider
+                ], align="center")
+            ], gap=1),
+            mo.vstack([
+                mo.hstack([
+                    mo.md("Comparison mode"),
+                    mode_dropdown,
+                ], align="center"),
+                mo.hstack([
+                    mo.md("Show 'Others'"),
+                    show_others
+                ], align="center"),
+                mo.hstack([
+                    mo.md(f"Filter Date: **{pd.to_datetime(sel_start).strftime('%Y-%m-%d')}** to **{pd.to_datetime(sel_end).strftime('%Y-%m-%d')}**"),
+                    date_slider
+                ], align="center")
+            ], gap=1)
+        ], justify="start", gap=4),
+        mo.iframe(svg_str + _JS, width="1020px", height="820px")
     ])
-    return
-
-
-@app.cell
-def _(graph_2_2_data):
-    graph_2_2_data
     return
 
 
