@@ -10,6 +10,8 @@ def _():
     import pandas as pd
     import numpy as np
     from sklearn.neighbors import BallTree
+    import svg
+    import math
 
     return BallTree, mo, np, pd
 
@@ -21,7 +23,7 @@ def _(BallTree, np, pd):
         # 1. Split data
         df_comm = df[df['zone'].isin(['commercial', 'residential'])].reset_index(drop=True)
         df_targets = df[df['zone'].isin(['tourism', 'industrial'])].reset_index(drop=True)
-    
+
         if df_comm.empty or df_targets.empty:
             return pd.DataFrame()
 
@@ -29,11 +31,11 @@ def _(BallTree, np, pd):
         comm_rad = np.radians(df_comm[['lat', 'lon']])
         target_rad = np.radians(df_targets[['lat', 'lon']])
         tree = BallTree(target_rad, metric='haversine')
-    
+
         earth_radius_km = 6371.0
         radius_rad = max_radius_km / earth_radius_km
         distances, indices = tree.query(comm_rad, k=k, return_distance=True)
-    
+
         # 3. Collect Valid Neighbors and Calculate Inverse Distance Weight
         results = []
         for i, (dist_array, idx_array) in enumerate(zip(distances, indices)):
@@ -41,13 +43,13 @@ def _(BallTree, np, pd):
                 if dist <= radius_rad:
                     dist_km = dist * earth_radius_km
                     weight = 1.0 / (dist_km + epsilon) # Add epsilon to avoid zero division
-                
+
                     results.append({
                         'commercial_id': df_comm.iloc[i]['place_id'],
                         'target_zone': df_targets.iloc[idx]['zone'],
                         'weight': weight
                     })
-                
+
         df_neighbors = pd.DataFrame(results)
         if df_neighbors.empty:
             return pd.DataFrame(columns=['commercial_id', 'predicted_zone', 'weighted_score'])
@@ -56,12 +58,12 @@ def _(BallTree, np, pd):
         weighted_scores = (df_neighbors.groupby(['commercial_id', 'target_zone'])['weight']
                                        .sum()
                                        .reset_index(name='weighted_score'))
-    
+
         # 5. Sort by highest weighted score to determine majority
         df_majority = (weighted_scores.sort_values(['commercial_id', 'weighted_score'], ascending=[True, False])
                                       .drop_duplicates(subset=['commercial_id'], keep='first')
                                       .rename(columns={'target_zone': 'predicted_zone'}))
-                              
+
         return df_majority.reset_index(drop=True)
 
     return (classify_weighted_knn,)
@@ -225,7 +227,7 @@ def _(pd, time_location_remapped):
     delta_time_spend['delta'] = delta_time_spend.get('industrial', pd.Timedelta(0)) - delta_time_spend.get('tourism', pd.Timedelta(0))
 
     delta_time_spend
-    return (people_timespend_summary_filtered,)
+    return (delta_time_spend,)
 
 
 @app.cell
@@ -248,7 +250,6 @@ def _(mo):
         ], align="start", justify="start")     
     ])
 
-
     return knn_dist_slider, knn_num_slider, mode_dropdown
 
 
@@ -261,8 +262,8 @@ def _(time_location_remapped):
 
 @app.cell
 def _(
+    delta_time_spend,
     mode_dropdown,
-    people_timespend_summary_filtered,
     people_zone_summary_delta,
     time_location_remapped,
 ):
@@ -270,14 +271,26 @@ def _(
         graph_2_1_data = people_zone_summary_delta
         graph_2_2_data = time_location_remapped.groupby(['people_id', 'date', 'zone_remapped', 'trip_id']).agg({'place_id': 'count'}).reset_index().rename(columns={'place_id': 'num_visits'})
     else:
-        graph_2_1_data = people_timespend_summary_filtered
+        graph_2_1_data = delta_time_spend.reset_index()
         graph_2_2_data = time_location_remapped.groupby(['people_id', 'date', 'zone_remapped', 'trip_id']).agg({'time_spend': 'sum'}).reset_index().rename(columns={'place_id': 'time_spend'})
+    return graph_2_1_data, graph_2_2_data
+
+
+@app.cell
+def _(graph_2_1_data):
+    graph_2_1_data
     return
 
 
 @app.cell
-def _(graph_2_3_data):
-    graph_2_3_data
+def _(graph_2_1_data):
+    graph_2_1_data.to_json('data/graph_2_1_data.json')
+    return
+
+
+@app.cell
+def _(graph_2_2_data):
+    graph_2_2_data.to_json('data/graph_2_2_data.json')
     return
 
 
