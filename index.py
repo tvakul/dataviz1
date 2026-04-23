@@ -509,7 +509,7 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
     for tid, (gx, gy) in cloud_pos.items():
         t         = topics[tid]
         n         = len(t["targets"])
-        blob_r    = R_CLOUD + 5 + n * 2 # REDUCED formula
+        blob_r    = R_CLOUD + 5 + n * 2 
         stid      = safe_id(tid)
         avg_s     = t["avg_sentiment"]
         avg_s_raw = t["avg_sentiment_raw"]
@@ -560,13 +560,13 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         base = dict(id=f"node_{stid}", fill=fill, opacity="1", stroke="#999", stroke_width=1.0)
 
         if data["target_type"] == "discussion":
-            sz = 10 # REDUCED from 14
+            sz = 10 
             c1, s1 = 0.951, 0.309 
             c2, s2 = 0.588, 0.809 
             pts = f"{tx},{ty-sz} {tx+sz*c1},{ty-sz*s1} {tx+sz*c2},{ty+sz*s2} {tx-sz*c2},{ty+sz*s2} {tx-sz*c1},{ty-sz*s1}"
             target_nodes.append(DataPolygon(data_fill=fill, points=pts, **base))
         else:
-            sz = 8 # REDUCED from 11
+            sz = 8 
             target_nodes.append(DataRect(data_fill=fill, x=tx-sz, y=ty-sz, width=sz*2, height=sz*2, **base))
 
         val_str = f"{data['avg_sentiment_raw']:+.1f}".replace("+0.0", "0.0")
@@ -757,7 +757,6 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
     </script>
     """
 
-    # CHANGED: iframe dimensions reduced to prevent scrolling
     visual1 = mo.vstack([mo.md('**Sentiment map**'), mo.vstack([ 
                           mo.iframe(svg_str + _JS, height="700px", width="1200px")], align="center")])
     return (visual1,)
@@ -779,12 +778,19 @@ def _(mo, pd):
 
 
 @app.cell
-def _(df, mo):
+def _(mo, pd):
+    try:
+        df_totals = pd.read_csv(str(mo.notebook_location() / "data" / "people_participation_total.csv"))
+    except:
+        df_totals = pd.read_csv("https://raw.githubusercontent.com/tvakul/dataviz1/refs/heads/main/data/people_participation_total.csv") 
+    return (df_totals,)
 
+
+@app.cell
+def _(df, mo):
     metrics = ['num_discussions', 'num_meetings', 'num_plans', 'num_topics']
     df[metrics] = df[metrics].fillna(0)
 
-    # Colors
     focus_colors = {
         'fishing': '#2ca02c',  
         'tourism': '#d62728',
@@ -800,7 +806,7 @@ def _(df, mo):
         'Teddy Goldstein': '#bcbd22'
     }
 
-    # Generate UI Checkboxes
+    # UI Checkboxes
     all_people = sorted(df['people_id'].dropna().unique())
     all_focuses = sorted(df['focus'].dropna().unique())
 
@@ -810,48 +816,45 @@ def _(df, mo):
 
 
 @app.cell
-def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
-    # Extract selected values from checkboxes
+def _(df, df_totals, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
+
     selected_people = [p for p, active in people_ui.value.items() if active]
     selected_focuses = [f for f, active in focus_ui.value.items() if active]
 
-    # Filter dataset
     filtered_df = df[
         (df['people_id'].isin(selected_people)) & 
         (df['focus'].isin(selected_focuses))
     ].copy()
 
+
+    filtered_totals_df = df_totals[df_totals['focus'].isin(selected_focuses)].copy()
+
     x_labels = ['Discussions', 'Meetings', 'Plans', 'Topics']
 
-    # Calculate totals on filtered data
     if filtered_df.empty:
         totals = pd.DataFrame(columns=metrics)
-        max_val = 1 # Prevent division by zero
+        max_val = 1 
     else:
         totals = filtered_df.groupby('people_id')[metrics].sum()
         max_val = totals.max().max()
         max_val = max(1, max_val)
 
-    # --- LAYOUT FIXES ---
-    # Increased padding to prevent text and bubbles from colliding
     padding_x = 160  
-    padding_y = 50   
+    padding_y = 100  
     right_margin = 180 
     width = 800
     height = max(400, len(selected_people) * 80 + padding_y * 2)
 
-    max_radius = 35 # Maximum circle radius in pixels
+    max_radius = 35 
 
     n_x = len(metrics)
     n_y = len(selected_people)
 
-    # Calculate X coordinates safely
     if n_x > 1:
         x_coords = [padding_x + _i * (width - right_margin - padding_x) / (n_x - 1) for _i in range(n_x)]
     else:
         x_coords = [(padding_x + width - right_margin) / 2]
 
-    # Calculate Y coordinates safely
     if n_y > 1:
         y_coords = [padding_y + _i * (height - 2 * padding_y) / (n_y - 1) for _i in range(n_y)]
     else:
@@ -860,7 +863,6 @@ def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
     svg_elements = []
     svg_elements.append(f'<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">')
 
-    # CSS Targets the group (.pie-group) to highlight the whole circle at once
     svg_elements.append('''
     <style>
         .pie-slice { transition: opacity 0.2s, stroke-width 0.2s; }
@@ -871,21 +873,58 @@ def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
 
     svg_elements.append(f'<rect width="100%" height="100%" fill="white"/>')
 
-    # Draw X-axis lines and labels (Metrics)
+
+    max_bar_width = 80
+    bar_height = 16
+
+    if not filtered_totals_df.empty:
+        max_col_total = max([filtered_totals_df[m].sum() for m in metrics])
+        max_col_total = max(1, max_col_total)
+    else:
+        max_col_total = 1
+
+    for _j, metric in enumerate(metrics):
+        x_pos = x_coords[_j]
+
+        col_total = filtered_totals_df[metric].sum() if not filtered_totals_df.empty else 0
+
+        if col_total > 0:
+            bar_w = (col_total / max_col_total) * max_bar_width
+            start_x = x_pos - (bar_w / 2)
+            curr_x = start_x
+
+            metric_clean = x_labels[_j]
+            tooltip_lines = [f"{metric_clean} (Overall)", f"Total: {int(col_total)}", "---"]
+            segment_data = []
+
+            for focus in selected_focuses:
+                val = filtered_totals_df.loc[filtered_totals_df['focus'] == focus, metric].sum()
+                if val > 0:
+                    seg_w = (val / col_total) * bar_w
+                    color = focus_colors.get(focus, '#000000')
+                    segment_data.append((seg_w, color))
+                    tooltip_lines.append(f"{focus.capitalize()}: {int(val)}")
+
+            title_text = "&#10;".join(tooltip_lines)
+
+            svg_elements.append(f'<g class="pie-group"><title>{title_text}</title>')
+
+
+            for seg_w, color in segment_data:
+                svg_elements.append(f'<rect class="pie-slice" x="{curr_x}" y="{padding_y - 65}" width="{seg_w}" height="{bar_height}" fill="{color}" stroke="white" stroke-width="0.5"/>')
+                curr_x += seg_w
+
+            svg_elements.append('</g>')
+
+            svg_elements.append(f'<text x="{x_pos}" y="{padding_y - 72}" font-family="sans-serif" font-size="11" font-weight="bold" fill="#555" text-anchor="middle">{int(col_total)}</text>')
+
     for _i, x_pos in enumerate(x_coords):
-        # Faint vertical guide line (Extended up and down by 45 to clear bubbles)
         svg_elements.append(f'<line x1="{x_pos}" y1="{padding_y - 45}" x2="{x_pos}" y2="{height - padding_y + 45}" stroke="#eeeeee" stroke-width="1"/>')
+        svg_elements.append(f'<text x="{x_pos}" y="{height - padding_y + 65}" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">{x_labels[_i]}</text>')
 
-        # Bottom label (Shifted down by +65 to completely clear the largest bubble)
-        svg_elements.append(f'<text x="{x_pos}" y="{height - padding_y + 45}" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">{x_labels[_i]}</text>')
-
-    # Draw Y-axis lines and labels (People)
     for _i, person in enumerate(selected_people):
         y_pos = y_coords[_i]
-        # Faint horizontal guide line (Extended left by 45 to clear bubbles)
         svg_elements.append(f'<line x1="{padding_x - 45}" y1="{y_pos}" x2="{width - right_margin + 20}" y2="{y_pos}" stroke="#dddddd" stroke-dasharray="4" stroke-width="1"/>')
-
-        # Left label (Shifted left by -50 to completely clear the largest bubble)
         svg_elements.append(f'<text x="{padding_x - 50}" y="{y_pos + 4}" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="end">{person}</text>')
 
     def create_pie_slice(cx, cy, _r, start_angle, end_angle, color):
@@ -902,7 +941,6 @@ def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
 
         return f'<path class="pie-slice" d="{path}" fill="{color}" stroke="white" stroke-width="0.5" />'
 
-    # Plot the Data
     for _i, person in enumerate(selected_people):
         y_pos = y_coords[_i]
         for _j, metric in enumerate(metrics):
@@ -921,11 +959,7 @@ def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
 
             if len(values) > 0:
                 total_val = values.sum()
-
-                # Area proportional mapping (sqrt of value)
                 _r = max_radius * math.sqrt(total_val / max_val)
-
-                # Unified tooltip
                 metric_clean = x_labels[_j]
                 tooltip_lines = [f"{person} | {metric_clean}", f"Total: {int(total_val)}", "---"]
                 for val, label in zip(values, labels):
@@ -946,11 +980,178 @@ def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
 
                 svg_elements.append('</g>')
 
-    # Legends
+
     legend_x = width - right_margin + 30
     legend_y = padding_y
 
-    # Focus Legend
+
+    if len(selected_focuses) > 0:
+        svg_elements.append(f'<text x="{legend_x}" y="{legend_y}" font-family="sans-serif" font-size="14" font-weight="bold">Focus</text>')
+        legend_y += 20
+        for focus in selected_focuses:
+            color = focus_colors.get(focus, '#000000')
+            svg_elements.append(f'<rect x="{legend_x}" y="{legend_y-10}" width="15" height="15" fill="{color}"/>')
+            svg_elements.append(f'<text x="{legend_x+25}" y="{legend_y+2}" font-family="sans-serif" font-size="12">{focus.capitalize()}</text>')
+            legend_y += 20
+    x_labels = ['Discussions', 'Meetings', 'Plans', 'Topics']
+
+
+    if filtered_df.empty:
+        totals = pd.DataFrame(columns=metrics)
+        max_val = 1 
+    else:
+        totals = filtered_df.groupby('people_id')[metrics].sum()
+        max_val = totals.max().max()
+        max_val = max(1, max_val)
+
+
+    padding_x = 160  
+    padding_y = 100  
+    right_margin = 180 
+    width = 800
+    height = max(400, len(selected_people) * 80 + padding_y * 2)
+
+    max_radius = 35 
+
+    n_x = len(metrics)
+    n_y = len(selected_people)
+
+    if n_x > 1:
+        x_coords = [padding_x + _i * (width - right_margin - padding_x) / (n_x - 1) for _i in range(n_x)]
+    else:
+        x_coords = [(padding_x + width - right_margin) / 2]
+
+    if n_y > 1:
+        y_coords = [padding_y + _i * (height - 2 * padding_y) / (n_y - 1) for _i in range(n_y)]
+    else:
+        y_coords = [height / 2] if n_y == 1 else []
+
+    svg_elements = []
+    svg_elements.append(f'<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">')
+
+    svg_elements.append('''
+    <style>
+        .pie-slice { transition: opacity 0.2s, stroke-width 0.2s; }
+        .pie-group { cursor: pointer; }
+        .pie-group:hover .pie-slice { opacity: 0.7; stroke: #333 !important; stroke-width: 1.5 !important; }
+    </style>
+    ''')
+
+    svg_elements.append(f'<rect width="100%" height="100%" fill="white"/>')
+
+
+    max_bar_width = 80 
+    bar_height = 16
+
+    if not filtered_totals_df.empty:
+        max_col_total = max([filtered_totals_df[m].sum() for m in metrics])
+        max_col_total = max(1, max_col_total)
+    else:
+        max_col_total = 1
+
+    for _j, metric in enumerate(metrics):
+        x_pos = x_coords[_j]
+
+        col_total = filtered_totals_df[metric].sum() if not filtered_totals_df.empty else 0
+
+        if col_total > 0:
+            bar_w = (col_total / max_col_total) * max_bar_width
+            start_x = x_pos - (bar_w / 2)
+            curr_x = start_x
+
+            metric_clean = x_labels[_j]
+            tooltip_lines = [f"{metric_clean} (Unique, Overall)", f"Total: {int(col_total)}", "---"]
+            segment_data = []
+
+            for focus in selected_focuses:
+                val = filtered_totals_df.loc[filtered_totals_df['focus'] == focus, metric].sum()
+                if val > 0:
+                    seg_w = (val / col_total) * bar_w
+                    color = focus_colors.get(focus, '#000000')
+                    segment_data.append((seg_w, color))
+                    tooltip_lines.append(f"{focus.capitalize()}: {int(val)}")
+
+            title_text = "&#10;".join(tooltip_lines)
+
+            svg_elements.append(f'<g class="pie-group"><title>{title_text}</title>')
+
+            for seg_w, color in segment_data:
+                svg_elements.append(f'<rect class="pie-slice" x="{curr_x}" y="{padding_y - 65}" width="{seg_w}" height="{bar_height}" fill="{color}" stroke="white" stroke-width="0.5"/>')
+                curr_x += seg_w
+
+            svg_elements.append('</g>')
+
+            svg_elements.append(f'<text x="{x_pos}" y="{padding_y - 72}" font-family="sans-serif" font-size="11" font-weight="bold" fill="#555" text-anchor="middle">{int(col_total)}</text>')
+
+    for _i, x_pos in enumerate(x_coords):
+        svg_elements.append(f'<line x1="{x_pos}" y1="{padding_y - 45}" x2="{x_pos}" y2="{height - padding_y + 45}" stroke="#eeeeee" stroke-width="1"/>')
+        svg_elements.append(f'<text x="{x_pos}" y="{height - padding_y + 65}" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">{x_labels[_i]}</text>')
+
+    for _i, person in enumerate(selected_people):
+        y_pos = y_coords[_i]
+        svg_elements.append(f'<line x1="{padding_x - 45}" y1="{y_pos}" x2="{width - right_margin + 20}" y2="{y_pos}" stroke="#dddddd" stroke-dasharray="4" stroke-width="1"/>')
+        svg_elements.append(f'<text x="{padding_x - 50}" y="{y_pos + 4}" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="end">{person}</text>')
+
+    def create_pie_slice(cx, cy, _r, start_angle, end_angle, color):
+        if end_angle - start_angle >= 2 * math.pi - 0.0001:
+            return f'<circle class="pie-slice" cx="{cx}" cy="{cy}" r="{_r}" fill="{color}" stroke="white" stroke-width="0.5" />'
+
+        x1 = cx + _r * math.cos(start_angle)
+        y1 = cy + _r * math.sin(start_angle)
+        x2 = cx + _r * math.cos(end_angle)
+        y2 = cy + _r * math.sin(end_angle)
+
+        large_arc = 1 if end_angle - start_angle > math.pi else 0
+        path = f'M {cx} {cy} L {x1} {y1} A {_r} {_r} 0 {large_arc} 1 {x2} {y2} Z'
+
+        return f'<path class="pie-slice" d="{path}" fill="{color}" stroke="white" stroke-width="0.5" />'
+
+    for _i, person in enumerate(selected_people):
+        y_pos = y_coords[_i]
+        for _j, metric in enumerate(metrics):
+            x_pos = x_coords[_j]
+
+            if person not in totals.index:
+                continue
+
+            person_data = filtered_df[filtered_df['people_id'] == person]
+            values = person_data[metric].values
+            labels = person_data['focus'].values
+
+            mask = values > 0
+            values = values[mask]
+            labels = labels[mask]
+
+            if len(values) > 0:
+                total_val = values.sum()
+
+                _r = max_radius * math.sqrt(total_val / max_val)
+
+                metric_clean = x_labels[_j]
+                tooltip_lines = [f"{person} | {metric_clean}", f"Total: {int(total_val)}", "---"]
+                for val, label in zip(values, labels):
+                    tooltip_lines.append(f"{label.capitalize()}: {int(val)}")
+
+                title_text = "&#10;".join(tooltip_lines)
+
+                svg_elements.append(f'<g class="pie-group"><title>{title_text}</title>')
+
+                start_angle = 0
+                for val, label in zip(values, labels):
+                    angle = (val / total_val) * 2 * math.pi
+                    end_angle = start_angle + angle
+                    color = focus_colors.get(label, '#000000')
+
+                    svg_elements.append(create_pie_slice(x_pos, y_pos, _r, start_angle, end_angle, color))
+                    start_angle = end_angle
+
+                svg_elements.append('</g>')
+
+
+    legend_x = width - right_margin + 30
+    legend_y = padding_y
+
+
     if len(selected_focuses) > 0:
         svg_elements.append(f'<text x="{legend_x}" y="{legend_y}" font-family="sans-serif" font-size="14" font-weight="bold">Focus</text>')
         legend_y += 20
@@ -960,10 +1161,9 @@ def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
             svg_elements.append(f'<text x="{legend_x+25}" y="{legend_y+2}" font-family="sans-serif" font-size="12">{focus.capitalize()}</text>')
             legend_y += 20
 
-    # Size Legend (shows proportional area sizes)
     if max_val > 0 and len(selected_people) > 0:
         legend_y += 20
-        svg_elements.append(f'<text x="{legend_x}" y="{legend_y}" font-family="sans-serif" font-size="14" font-weight="bold">Total Items</text>')
+        svg_elements.append(f'<text x="{legend_x}" y="{legend_y}" font-family="sans-serif" font-size="14" font-weight="bold">Total</text>')
         legend_y += 45
 
         example_vals = [max_val, max_val/2, max_val/4] if max_val >= 4 else [max_val, 1]
@@ -986,8 +1186,6 @@ def _(df, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
                     mo.vstack([mo.md("**Select Focus Types:**"), focus_ui])
             ])
         ])
-
-
     ])
     return (visual3,)
 
