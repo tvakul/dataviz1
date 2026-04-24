@@ -3013,7 +3013,7 @@ def _(
                     tooltip.style.left = x + 'px';
                     tooltip.style.top = y + 'px';
 
-                    // Adjust if tooltip goes off screen
+                    
                     const box = tooltip.getBoundingClientRect();
                     if (x + box.width > window.innerWidth) tooltip.style.left = (e.pageX - box.width - 15) + 'px';
                     if (y + box.height > window.innerHeight) tooltip.style.top = (e.pageY - box.height - 15) + 'px';
