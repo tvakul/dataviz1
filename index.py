@@ -906,7 +906,7 @@ def _(df, df_totals, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
         col_total = filtered_totals_df[metric].sum() if not filtered_totals_df.empty else 0
 
         if col_total > 0:
-            bar_w = (col_total / max_col_total) * max_bar_width
+            bar_w = max_bar_width
             start_x = x_pos - (bar_w / 2)
             curr_x = start_x
 
@@ -1072,7 +1072,7 @@ def _(df, df_totals, focus_colors, focus_ui, math, metrics, mo, pd, people_ui):
         col_total = filtered_totals_df[metric].sum() if not filtered_totals_df.empty else 0
 
         if col_total > 0:
-            bar_w = (col_total / max_col_total) * max_bar_width
+            bar_w = max_bar_width
             start_x = x_pos - (bar_w / 2)
             curr_x = start_x
 
