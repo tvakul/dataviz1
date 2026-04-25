@@ -500,13 +500,13 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         svg.Rect(x=leg_x-1, y=leg_y + 75, width=10, height=10, fill="#ccc", stroke="#999"),
         svg.Text(x=leg_x+15, y=leg_y + 83, text="Plan", font_size=10, fill="#555"),
 
-        svg.Text(x=leg_x, y=leg_y + 110, text="Gov Data", font_size=10, font_weight="bold", fill="#555"),
+        svg.Text(x=leg_x, y=leg_y + 110, text="Government vs Journalist data", font_size=10, font_weight="bold", fill="#555"),
         person_glyph(leg_x + 5, leg_y + 130, fill="#ccc"),
         halo(leg_x + 5, leg_y + 130, has_crown=False),
         svg.Text(x=leg_x+15, y=leg_y + 127, text="Complete", font_size=10, fill="#555"),
         person_glyph(leg_x + 5, leg_y + 155, fill="#ccc"),
         devil_horns(leg_x + 5, leg_y + 155),
-        svg.Text(x=leg_x+15, y=leg_y + 152, text="Missing Info", font_size=10, fill="#555"),
+        svg.Text(x=leg_x+15, y=leg_y + 152, text="Incomplete", font_size=10, fill="#555"),
     ]
 
     left_edge = 10 
@@ -2643,11 +2643,19 @@ def _(
             if n_t > 0:
                 a_st = (2 * math.pi) / n_t
                 m_t_v = trip_data[categories].sum(axis=1).max() or 1
-                base_r = mid_r + 12
-                max_h = outer_r - base_r
+                if not show_others:
+                    # Divergent layout: baseline in the middle
+                    base_r = (mid_r + outer_r) / 2
+                    max_h = (outer_r - mid_r) / 2
+                    bg_rings = [base_r - max_h, base_r, base_r + max_h]
+                else:
+                    base_r = mid_r + 12
+                    max_h = outer_r - base_r
+                    bg_rings = [base_r, base_r + max_h * 0.5, outer_r]
+
                 slice_span = a_st * 0.68
 
-                for ring_r in [base_r, base_r + max_h * 0.5, outer_r]:
+                for ring_r in bg_rings:
                     g.elements.append(
                         svg.Circle(
                             cx=cx,
@@ -2700,10 +2708,19 @@ def _(
                         if h_v < 0.5:
                             continue
 
-                        x1, y1 = cx + cur_br * math.cos(ang_b), cy + cur_br * math.sin(ang_b)
-                        x2, y2 = cx + cur_br * math.cos(ang_b + slice_span), cy + cur_br * math.sin(ang_b + slice_span)
-                        x3, y3 = cx + (cur_br + h_v) * math.cos(ang_b + slice_span), cy + (cur_br + h_v) * math.sin(ang_b + slice_span)
-                        x4, y4 = cx + (cur_br + h_v) * math.cos(ang_b), cy + (cur_br + h_v) * math.sin(ang_b)
+                        if not show_others and zone == "tourism":
+                            # Tourism goes inwards (negative) from baseline
+                            start_r = base_r
+                            end_h_v = -h_v
+                        else:
+                            # Fishing (or others if enabled) stack outwards
+                            start_r = cur_br
+                            end_h_v = h_v
+
+                        x1, y1 = cx + start_r * math.cos(ang_b), cy + start_r * math.sin(ang_b)
+                        x2, y2 = cx + start_r * math.cos(ang_b + slice_span), cy + start_r * math.sin(ang_b + slice_span)
+                        x3, y3 = cx + (start_r + end_h_v) * math.cos(ang_b + slice_span), cy + (start_r + end_h_v) * math.sin(ang_b + slice_span)
+                        x4, y4 = cx + (start_r + end_h_v) * math.cos(ang_b), cy + (start_r + end_h_v) * math.sin(ang_b)
 
                         trip_els.append(
                             svg.Polygon(
@@ -2714,7 +2731,8 @@ def _(
                                 stroke_width=0.8,
                             )
                         )
-                        cur_br += h_v
+                        if not (not show_others and zone == "tourism"):
+                            cur_br += h_v
                     g.elements.append(DataG(elements=trip_els, class_="c7-segment", style="cursor:pointer", data_info=shared_info))
 
             g.elements.append(
@@ -3013,7 +3031,7 @@ def _(
                     tooltip.style.left = x + 'px';
                     tooltip.style.top = y + 'px';
 
-                    
+
                     const box = tooltip.getBoundingClientRect();
                     if (x + box.width > window.innerWidth) tooltip.style.left = (e.pageX - box.width - 15) + 'px';
                     if (y + box.height > window.innerHeight) tooltip.style.top = (e.pageY - box.height - 15) + 'px';
