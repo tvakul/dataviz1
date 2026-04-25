@@ -1896,7 +1896,7 @@ def _(
                 rx=10,
             )
         )
-        els.append(svg.Text(x=c5_x + 16, y=c5_y + 23, text="Shoreline bias", class_="c5-title"))
+        els.append(svg.Text(x=c5_x + 16, y=c5_y + 23, text="Visit bias" if mode == "visits" else "Time spent bias", class_="c5-title"))
         els.append(
             svg.Text(
                 x=c5_x + c5_w - 16,
