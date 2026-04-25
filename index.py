@@ -519,8 +519,8 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
 
     if both_topics:
         zone_labels.append(svg.Text(
-            x=left_edge, y=cy - R_RING - 10, text="Both",
-            text_anchor="start", font_size=11, fill="#888", font_style="italic"
+            x=left_edge, y=cy - R_RING - 10, text="Topic that support both fishing and tourism",
+            text_anchor="start", font_size=11, fill="#888"
         ))
 
     for tid, (gx, gy) in cloud_pos.items():
@@ -1773,7 +1773,10 @@ def _(
     mo,
     mode_dropdown,
     oceanus_geojson,
+    pd,
     places_edited,
+    sel_end,
+    sel_start,
     show_others,
     svg,
     time_location_remapped,
@@ -2634,14 +2637,20 @@ def _(
                     cur_a += swp
             g.elements.append(donut_g)
 
-            trip_data = m_data.groupby(["date", "trip_id", "zone_mapped"])["val"].sum().unstack(fill_value=0)
+            # Use 'time' to get accurate chronological order and positioning
+            # Combine trips on the same date for positioning
+            trip_data = m_data.groupby(["date", "zone_mapped"])["val"].sum().unstack(fill_value=0)
             categories = ["fishing", "tourism", "other"]
             trip_data = trip_data.reindex(columns=categories, fill_value=0).reset_index()
-            trip_data = trip_data.sort_values(["date", "trip_id"])
+            trip_data = trip_data.sort_values("date")
 
             n_t = len(trip_data)
             if n_t > 0:
-                a_st = (2 * math.pi) / n_t
+                t_range = (pd.to_datetime(sel_end) - pd.to_datetime(sel_start)).total_seconds() or 1
+                def get_ang(t):
+                    frac = (pd.to_datetime(t) - pd.to_datetime(sel_start)).total_seconds() / t_range
+                    return -math.pi / 2 + frac * 2 * math.pi
+
                 m_t_v = trip_data[categories].sum(axis=1).max() or 1
                 if not show_others:
                     # Divergent layout: baseline in the middle
@@ -2653,7 +2662,8 @@ def _(
                     max_h = outer_r - base_r
                     bg_rings = [base_r, base_r + max_h * 0.5, outer_r]
 
-                slice_span = a_st * 0.68
+                # Use a fixed width for trips to show them as points/events in time
+                slice_span = 0.05 
 
                 for ring_r in bg_rings:
                     g.elements.append(
@@ -2668,13 +2678,38 @@ def _(
                         )
                     )
 
+                # Draw day labels/spokes around the outer ring
+                num_days = (pd.to_datetime(sel_end) - pd.to_datetime(sel_start)).days + 1
+                label_step = 1 if num_days <= 14 else 5 if num_days <= 60 else 30
+                for d_idx in range(0, num_days + 1, label_step):
+                    d_val = pd.to_datetime(sel_start) + pd.Timedelta(days=d_idx)
+                    if d_val > pd.to_datetime(sel_end) + pd.Timedelta(days=1): continue
+                    ang = get_ang(d_val)
+                    lx1 = cx + (mid_r + 4) * math.cos(ang)
+                    ly1 = cy + (mid_r + 4) * math.sin(ang)
+                    lx2 = cx + (outer_r + 12) * math.cos(ang)
+                    ly2 = cy + (outer_r + 12) * math.sin(ang)
+                    g.elements.append(svg.Line(x1=lx1, y1=ly1, x2=lx2, y2=ly2, stroke="#d1dbe5", stroke_width=0.8, stroke_dasharray="2,2"))
+
+                    # Label
+                    tx = cx + (outer_r + 24) * math.cos(ang)
+                    ty = cy + (outer_r + 24) * math.sin(ang)
+                    date_str = d_val.strftime("%b %d")
+                    g.elements.append(
+                        svg.Text(
+                            x=tx, y=ty, text=date_str, text_anchor="middle", 
+                            font_size=9, fill="#95a5a6", 
+                            transform=f"rotate({math.degrees(ang)+90}, {tx}, {ty})"
+                        )
+                    )
+
                 for i, (_, row) in enumerate(trip_data.iterrows()):
-                    ang_b = -math.pi / 2 + i * a_st
+                    ang_b = get_ang(row["date"])
                     cur_br = base_r
                     t_val = row[categories].sum()
                     date_string = row["date"].strftime("%Y-%m-%d") if hasattr(row["date"], "strftime") else str(row["date"])
 
-                    date_info = f"Trip Details | ID: {row['trip_id']} | Date: {date_string} | Total: {fmt(t_val)}"
+                    date_info = f"Daily Summary | Date: {date_string} | Total: {fmt(t_val)}"
 
                     # Build focus summary for the whole trip
                     focus_summary_parts = []
@@ -3084,6 +3119,12 @@ def _(
         align="start",
     )
     return (visual2,)
+
+
+@app.cell
+def _():
+    # time_trip_spend.groupby('start_time').agg({"trip_id": pd.Series.nunique})
+    return
 
 
 @app.cell
