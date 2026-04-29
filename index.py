@@ -563,18 +563,19 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         stid      = safe_id(tid)
         avg_s     = t["avg_sentiment"]
         avg_s_raw = t["avg_sentiment_raw"]
+        avg_col   = "black" if tid in both_topic_ids else color_for(avg_s)
 
         clouds += [
             DataCircle(cx=gx, cy=gy, r=blob_r,
-                       fill=color_for(avg_s), opacity=0.18,
-                       stroke=color_for(avg_s), stroke_width=1.2, stroke_dasharray="4,3",
-                       id=f"cloud_{stid}", class_="topic-cloud", data_fill=color_for(avg_s)),
+                       fill=avg_col, opacity=0.18,
+                       stroke=avg_col, stroke_width=1.2, stroke_dasharray="4,3",
+                       id=f"cloud_{stid}", class_="topic-cloud", data_fill=avg_col),
             svg.Text(x=gx, y=gy - blob_r - 6, text=str(tid),
                      text_anchor="middle", font_size=10, fill="#444", font_weight="bold"),
             svg.Text(x=gx, y=gy, text=fmt_sent(avg_s_raw),
                      id=f"group_sent_{stid}", class_="group-sent",
                      text_anchor="middle", dominant_baseline="central", font_size=12,
-                     fill=color_for(avg_s), font_weight="bold")
+                     fill=avg_col, font_weight="bold")
         ]
 
     for pid, topics_dict in pid_to_topics.items():
@@ -587,7 +588,7 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
             stop = safe_id(top_id)
             stroke_w = max(0.8, abs(p_sent) * 10)
             if top_id in both_topic_ids:
-                col = "#999" # Gray for 'both' topics
+                col = "black" # Black for 'both' topics
             else:
                 col = color_for(p_sent)
 
@@ -653,7 +654,7 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         spid      = safe_id(pid)
 
         connected_targets = [f"{safe_id(t)}:{color_for(s_biased)}:{fmt_sent(s_raw, 1)}:{1 if is_gov else 0}" for t, (s_biased, s_raw, is_gov) in pid_to_targets.get(pid, {}).items()]
-        connected_topics  = [f"{safe_id(t)}:{color_for(s_biased)}:{fmt_sent(s_raw)}" for t, (s_biased, s_raw) in pid_to_topics.get(pid, {}).items()]
+        connected_topics  = [f"{safe_id(t)}:{('black' if t in both_topic_ids else color_for(s_biased))}:{fmt_sent(s_raw)}" for t, (s_biased, s_raw) in pid_to_topics.get(pid, {}).items()]
 
         p_sent = p.get("avg_sentiment", 0)
         g_els = [person_glyph(px, py, color_for(p_sent))]
@@ -1764,14 +1765,14 @@ def _(
                 if data_info:
                     kwargs["data"] = {"info": data_info}
                 super().__init__(**kwargs)
-    
+
         class DataPath(svg.Path):
             def __init__(self, **kwargs):
                 data_info = kwargs.pop("data_info", None)
                 if data_info:
                     kwargs["data"] = {"info": data_info}
                 super().__init__(**kwargs)
-        
+
         def format_duration(hours):
             h = float(hours)
             days = int(h // 24)
