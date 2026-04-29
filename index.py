@@ -223,8 +223,8 @@ def _():
 
 
 @app.cell
-def _(nodes):
-    nodes
+def _():
+    # nodes
     return
 
 
