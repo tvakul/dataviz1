@@ -303,9 +303,9 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, pd, svg):
         r, g, b = (int(c0[i] + (c1[i] - c0[i]) * t) for i in range(3))
         return f"rgb({r},{g},{b})"
 
-    def color_for(s):
+    def color_for(s, bound=True):
         t = min(abs(s), 1.0)
-        if t > 0:
+        if bound and t > 0:
             t = 0.4 + t * 0.8
         return interp(t, (255, 255, 255),
                       (46, 204, 113) if s >= 0 else (231, 76, 60))
@@ -703,7 +703,7 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, pd, svg):
         connected_topics  = [f"{safe_id(t)}:{('black' if t in both_topic_ids else color_for(s_biased))}:{fmt_sent(s_raw)}" for t, (s_biased, s_raw) in pid_to_topics.get(pid, {}).items()]
 
         p_sent = p.get("avg_sentiment", 0)
-        g_els = [person_glyph(px, py, color_for(p_sent))]
+        g_els = [person_glyph(px, py, color_for(p_sent, bound=False))]
         if role == "Treasurer":       g_els.append(chest(px, py))
         if not honest:                g_els.append(devil_horns(px, py))
         if role == "Committee Chair": g_els.append(king_crown(px, py))
