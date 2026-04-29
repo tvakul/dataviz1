@@ -223,58 +223,79 @@ def _():
 
 
 @app.cell
+def _(nodes):
+    nodes
+    return
+
+
+@app.cell
 def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
     persons  = bias_persons.to_dict(orient="records")
 
     # Custom svg.py classes for hovering
     class DataRect(svg.Rect):
-        def __init__(self, data_fill, data_people="", data_topic="", **kwargs):
+        def __init__(self, data_fill, data_people="", data_topic="", data_tooltip="", **kwargs):
             self._data_fill = data_fill
             self._data_people = data_people
             self._data_topic = data_topic
+            self._data_tooltip = data_tooltip
             super().__init__(**kwargs)          
         def as_str(self):
             s = super().as_str()
             import re
             s = re.sub(r'\s-data-[a-z_]+="[^"]*"', '', s)
-            attrs = f' data-fill="{self._data_fill}" data-people="{self._data_people}" data-topic="{self._data_topic}"'
+            attrs = f' data-fill="{self._data_fill}" data-people="{self._data_people}" data-topic="{self._data_topic}" data-tooltip="{self._data_tooltip}"'
             return s.replace("/>", f'{attrs}/>', 1)
 
     class DataPolygon(svg.Polygon):
-        def __init__(self, data_fill, data_people="", data_topic="", **kwargs):
+        def __init__(self, data_fill, data_people="", data_topic="", data_tooltip="", **kwargs):
             self._data_fill = data_fill
             self._data_people = data_people
             self._data_topic = data_topic
+            self._data_tooltip = data_tooltip
             super().__init__(**kwargs)
         def as_str(self):
             import re
             s = super().as_str()
             s = re.sub(r'\s-data-[a-z_]+="[^"]*"', '', s)
-            attrs = f' data-fill="{self._data_fill}" data-people="{self._data_people}" data-topic="{self._data_topic}"'
+            attrs = f' data-fill="{self._data_fill}" data-people="{self._data_people}" data-topic="{self._data_topic}" data-tooltip="{self._data_tooltip}"'
             return s.replace("/>", f'{attrs}/>', 1)
 
     class DataG(svg.G):
-        def __init__(self, data_targets="", data_topics="", data_pid="", **kwargs):
+        def __init__(self, data_targets="", data_topics="", data_pid="", data_tooltip="", **kwargs):
             self._data_targets = data_targets
             self._data_topics  = data_topics
             self._data_pid     = data_pid
+            self._data_tooltip = data_tooltip
             super().__init__(**kwargs)
         def as_str(self):
             import re
             s = super().as_str()
             s = re.sub(r'\s-data-[a-z_]+="[^"]*"', '', s)
-            attrs = f' data-targets="{self._data_targets}" data-topics="{self._data_topics}" data-pid="{self._data_pid}"'
+            attrs = f' data-targets="{self._data_targets}" data-topics="{self._data_topics}" data-pid="{self._data_pid}" data-tooltip="{self._data_tooltip}"'
             return s.replace("<g ", f"<g{attrs} ", 1)
 
     class DataCircle(svg.Circle):
-        def __init__(self, data_fill="", **kwargs):
+        def __init__(self, data_fill="", data_tooltip="", **kwargs):
             self._data_fill = data_fill
+            self._data_tooltip = data_tooltip
             super().__init__(**kwargs)
         def as_str(self):
             import re
             s = super().as_str()
             s = re.sub(r'\s-data-[a-z_]+="[^"]*"', '', s)
-            attrs = f' data-fill="{self._data_fill}"'
+            attrs = f' data-fill="{self._data_fill}" data-tooltip="{self._data_tooltip}"'
+            return s.replace("/>", f'{attrs}/>', 1)
+
+    class DataLine(svg.Line):
+        def __init__(self, data_tooltip="", **kwargs):
+            self._data_tooltip = data_tooltip
+            super().__init__(**kwargs)
+        def as_str(self):
+            import re
+            s = super().as_str()
+            s = re.sub(r'\s-data-[a-z_]+="[^"]*"', '', s)
+            attrs = f' data-tooltip="{self._data_tooltip}"'
             return s.replace("/>", f'{attrs}/>', 1)
 
     # ── helpers ──────────────────────────────────────────────────────────────
@@ -374,7 +395,9 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
            .groupby(["topic_id", "target_id", "target_type", "industry"])
            .agg(avg_sentiment=("sentiment", "mean"),
                 avg_sentiment_raw=("sentiment_raw", "mean"), 
-                people=("people_id", lambda x: frozenset(x)))
+                people=("people_id", lambda x: frozenset(x)),
+                description=("description", "first"),
+                reasons=("reason", lambda x: list(set(x.dropna()))))
            .reset_index())
 
     topics = {}
@@ -464,8 +487,10 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
     person_target_sent = nodes.groupby(['people_id', 'target_id'])['sentiment'].mean().to_dict()
     person_target_raw  = nodes.groupby(['people_id', 'target_id'])['sentiment_raw'].mean().to_dict()
     person_target_gov  = nodes.groupby(['people_id', 'target_id'])['in_gov_data'].min().to_dict()
+    person_target_reasons = nodes.groupby(['people_id', 'target_id'])['reason'].first().to_dict()
     person_topic_sent  = nodes.groupby(['people_id', 'topic_id'])['sentiment'].mean().to_dict()
     person_topic_raw   = nodes.groupby(['people_id', 'topic_id'])['sentiment_raw'].mean().to_dict()
+    person_topic_reasons = nodes.groupby(['people_id', 'topic_id'])['reason'].apply(lambda x: list(set(x.dropna()))).to_dict()
 
     pid_to_targets = defaultdict(dict)
     pid_to_topics  = defaultdict(dict)
@@ -566,18 +591,19 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         avg_s     = t["avg_sentiment"]
         avg_s_raw = t["avg_sentiment_raw"]
         avg_col   = "black" if tid in both_topic_ids else color_for(avg_s)
+        tooltip = f"<b>Topic: {tid}</b><br/>Avg Sentiment: {fmt_sent(avg_s_raw)}<br/>Type: {t['industry'].capitalize()}"
 
         clouds += [
             DataCircle(cx=gx, cy=gy, r=blob_r,
                        fill=avg_col, opacity=0.18,
                        stroke=avg_col, stroke_width=1.2, stroke_dasharray="4,3",
-                       id=f"cloud_{stid}", class_="topic-cloud", data_fill=avg_col),
+                       id=f"cloud_{stid}", class_="topic-cloud", data_fill=avg_col, data_tooltip=tooltip),
             svg.Text(x=gx, y=gy - blob_r - 6, text=str(tid),
-                     text_anchor="middle", font_size=10, fill="#444", font_weight="bold"),
+                     text_anchor="middle", font_size=10, fill="#444", font_weight="bold", style="pointer-events:none"),
             svg.Text(x=gx, y=gy, text=fmt_sent(avg_s_raw),
                      id=f"group_sent_{stid}", class_="group-sent",
                      text_anchor="middle", dominant_baseline="central", font_size=12,
-                     fill=avg_col, font_weight="bold")
+                     fill=avg_col, font_weight="bold", style="pointer-events:none")
         ]
 
     for pid, topics_dict in pid_to_topics.items():
@@ -610,10 +636,16 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
                 end_x, end_y = gx, gy
                 mx, my = gx, gy
 
-            edges.append(svg.Line(
+            name = p.get("name", "Unknown")
+            p_reasons = person_topic_reasons.get((pid, top_id), [])
+            reasons_str = "<br/>" + "<br/>".join([f"• {r}" for r in p_reasons]) if p_reasons else ""
+            tooltip = f"<b>{name}</b> &rarr; <b>{top_id}</b><br/>Sentiment: {fmt_sent(p_sent)} (Raw: {fmt_sent(p_raw)}){reasons_str}"
+
+            edges.append(DataLine(
                 x1=px, y1=py, x2=end_x, y2=end_y,
                 stroke=col, stroke_width=stroke_w, opacity=0.75,
                 id=f"edge_{spid}_{stop}", style="display:none",
+                data_tooltip=tooltip
             ))
 
     for tid_key, (tx, ty, data) in target_pos.items():
@@ -624,7 +656,10 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         target_people = [safe_id(pid) for pid in data.get("people", [])]
         topic_id = safe_id(data["topic_id"])
 
-        base = dict(id=f"node_{stid}", fill=fill, opacity="1", stroke="#999", stroke_width=1.0)
+        r_list = data.get("reasons", [])
+        reasons_str = "<br/>" + "<br/>".join([f"• {r}" for r in r_list]) if r_list else ""
+        tooltip = f"<b>{data['target_type'].capitalize()}</b>: {data['description']}<br/>Avg Sentiment: {fmt_sent(data['avg_sentiment_raw'])}{reasons_str}"
+        base = dict(id=f"node_{stid}", fill=fill, opacity="1", stroke="#999", stroke_width=1.0, data_tooltip=tooltip)
 
         if data["target_type"] == "discussion":
             sz = 10 
@@ -669,9 +704,11 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         name = p.get("name", "Unknown")
         g_els.append(svg.Text(
             x=px+10, y=py+3, text=f"{name} ({fmt_sent(p_sent)})",
-            font_size=9, fill="#333", id=f"text_{spid}", class_="person-label"
+            font_size=9, fill="#333", id=f"text_{spid}", class_="person-label", style="pointer-events:none"
         ))
 
+        name = p.get("name", "Unknown")
+        tooltip = f"<b>{name}</b> ({role})<br/>Overall Sentiment: {fmt_sent(p_sent)}"
         ring_layer.append(DataG(
             id=f"person_{spid}",
             elements=g_els,
@@ -680,6 +717,7 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
             data_targets=";".join(connected_targets),
             data_topics=";".join(connected_topics),
             data_pid=spid,
+            data_tooltip=tooltip,
         ))
 
     centre_layer_elements = [
@@ -720,6 +758,21 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
     [id^="person_"] {
        transition: opacity 0.3s, filter 0.3s;
     }
+    #tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        pointer-events: none;
+        display: none;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        max-width: 250px;
+        line-height: 1.4;
+        font-family: sans-serif;
+    }
     </style>
     """
 
@@ -732,6 +785,31 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
           setTimeout(initGraph, 50);
           return;
       }
+
+      const tooltip = document.createElement('div');
+      tooltip.id = 'tooltip';
+      document.body.appendChild(tooltip);
+
+      function showTooltip(e, text) {
+        if (!text) return;
+        tooltip.innerHTML = text;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 15) + 'px';
+        tooltip.style.top = (e.clientY + 15) + 'px';
+      }
+
+      function hideTooltip() {
+        tooltip.style.display = 'none';
+      }
+
+      document.addEventListener('mousemove', (e) => {
+          const target = e.target.closest('[data-tooltip]');
+          if (target && target.style.display !== 'none' && target.getAttribute('opacity') !== '0.05') {
+              showTooltip(e, target.getAttribute('data-tooltip'));
+          } else {
+              hideTooltip();
+          }
+      });
 
       let lockedId = null;
 
@@ -847,13 +925,7 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
           });
 
           document.querySelectorAll('.target-sent').forEach(el => {
-            const stid = el.id.replace('target_text_bg_', '').replace('target_text_fg_', '');
-            if (targetMap[stid]) {
-                el.textContent = targetMap[stid].text;
-                el.style.display = '';
-            } else {
-                el.style.display = 'none'; 
-            }
+            el.style.display = 'none'; 
           });
       }
 
