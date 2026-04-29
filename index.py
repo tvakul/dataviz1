@@ -229,7 +229,7 @@ def _(nodes):
 
 
 @app.cell
-def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
+def _(Counter, bias_persons, defaultdict, math, mo, nodes, pd, svg):
     persons  = bias_persons.to_dict(orient="records")
 
     # Custom svg.py classes for hovering
@@ -391,14 +391,20 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         ])
 
     # ── data aggregation ─────────────────────────────────────────────────────
-    agg = (nodes
+    # Join with names for tooltips
+    nodes_names = nodes.merge(bias_persons[['people_id', 'name']], on='people_id', how='left')
+
+    agg = (nodes_names
            .groupby(["topic_id", "target_id", "target_type", "industry"])
            .agg(avg_sentiment=("sentiment", "mean"),
                 avg_sentiment_raw=("sentiment_raw", "mean"), 
                 people=("people_id", lambda x: frozenset(x)),
                 description=("description", "first"),
-                reasons=("reason", lambda x: list(set(x.dropna()))))
+                person_reasons=("people_id", lambda x: list(zip(nodes_names.loc[x.index, 'name'], nodes_names.loc[x.index, 'reason']))))
            .reset_index())
+
+    # Clean up person_reasons to remove NaN reasons
+    agg['person_reasons'] = agg['person_reasons'].apply(lambda pairs: [(n, r) for n, r in pairs if pd.notna(r)])
 
     topics = {}
     for _, row in agg.iterrows():
@@ -656,8 +662,11 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         target_people = [safe_id(pid) for pid in data.get("people", [])]
         topic_id = safe_id(data["topic_id"])
 
-        r_list = data.get("reasons", [])
-        reasons_str = "<br/>" + "<br/>".join([f"• {r}" for r in r_list]) if r_list else ""
+        pr_list = data.get("person_reasons", [])
+        reasons_str = ""
+        if pr_list:
+            reasons_str = "<br/>" + "<br/>".join([f"• <b>{n}</b>: {r}" for n, r in pr_list])
+
         tooltip = f"<b>{data['target_type'].capitalize()}</b>: {data['description']}<br/>Avg Sentiment: {fmt_sent(data['avg_sentiment_raw'])}{reasons_str}"
         base = dict(id=f"node_{stid}", fill=fill, opacity="1", stroke="#999", stroke_width=1.0, data_tooltip=tooltip)
 
