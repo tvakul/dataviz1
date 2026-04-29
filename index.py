@@ -266,6 +266,17 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
             attrs = f' data-targets="{self._data_targets}" data-topics="{self._data_topics}" data-pid="{self._data_pid}"'
             return s.replace("<g ", f"<g{attrs} ", 1)
 
+    class DataCircle(svg.Circle):
+        def __init__(self, data_fill="", **kwargs):
+            self._data_fill = data_fill
+            super().__init__(**kwargs)
+        def as_str(self):
+            import re
+            s = super().as_str()
+            s = re.sub(r'\s-data-[a-z_]+="[^"]*"', '', s)
+            attrs = f' data-fill="{self._data_fill}"'
+            return s.replace("/>", f'{attrs}/>', 1)
+
     # ── helpers ──────────────────────────────────────────────────────────────
     def interp(t, c0, c1):
         r, g, b = (int(c0[i] + (c1[i] - c0[i]) * t) for i in range(3))
@@ -554,9 +565,10 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
         avg_s_raw = t["avg_sentiment_raw"]
 
         clouds += [
-            svg.Circle(cx=gx, cy=gy, r=blob_r,
+            DataCircle(cx=gx, cy=gy, r=blob_r,
                        fill=color_for(avg_s), opacity=0.18,
-                       stroke=color_for(avg_s), stroke_width=1.2, stroke_dasharray="4,3"),
+                       stroke=color_for(avg_s), stroke_width=1.2, stroke_dasharray="4,3",
+                       id=f"cloud_{stid}", class_="topic-cloud", data_fill=color_for(avg_s)),
             svg.Text(x=gx, y=gy - blob_r - 6, text=str(tid),
                      text_anchor="middle", font_size=10, fill="#444", font_weight="bold"),
             svg.Text(x=gx, y=gy, text=fmt_sent(avg_s_raw),
@@ -743,6 +755,12 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
           el.setAttribute('fill', el.getAttribute('data-default-fill') || el.getAttribute('fill'));
         });
 
+        document.querySelectorAll('.topic-cloud').forEach(c => {
+          c.setAttribute('fill', c.getAttribute('data-fill'));
+          c.setAttribute('opacity', '0.18');
+          c.setAttribute('stroke-width', '1.2');
+        });
+
         document.querySelectorAll('.target-sent').forEach(el => {
           el.textContent = el.getAttribute('data-default') || el.textContent;
           el.style.display = ''; 
@@ -793,12 +811,21 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
 
           document.querySelectorAll('.group-sent').forEach(el => {
             const stid = el.id.replace('group_sent_', '');
+            const cloud = document.getElementById('cloud_' + stid);
             if (topicMap[stid]) {
                 el.textContent = topicMap[stid].text;
                 el.setAttribute('fill', topicMap[stid].color);
+                if (cloud) {
+                    cloud.setAttribute('fill', topicMap[stid].color);
+                    cloud.setAttribute('opacity', '0.45');
+                    cloud.setAttribute('stroke-width', '2');
+                }
             } else {
                 el.textContent = 'N/A';
                 el.setAttribute('fill', '#bbb');
+                if (cloud) {
+                    cloud.setAttribute('opacity', '0.05');
+                }
             }
           });
 
@@ -842,6 +869,15 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
           if (centre) centre.classList.add('blur-out');
           document.querySelectorAll('[id^="node_"]').forEach(n => {
               if (n.id !== node.id) n.setAttribute('opacity', '0.2');
+          });
+
+          document.querySelectorAll('.topic-cloud').forEach(c => {
+              if (c.id === 'cloud_' + stop) {
+                  c.setAttribute('opacity', '0.45');
+                  c.setAttribute('stroke-width', '2');
+              } else {
+                  c.setAttribute('opacity', '0.05');
+              }
           });
 
             peopleIds.forEach(spid => {
@@ -1496,19 +1532,7 @@ def _(svg):
     def _slug(name):
         return str(name).replace(" ", "_")
 
-    class DataCircle(svg.Circle):
-        def __init__(self, **kwargs):
-            data_info = kwargs.pop("data_info", None)
-            if data_info:
-                kwargs["data"] = {"info": data_info}
-            super().__init__(**kwargs)
 
-    class DataPath(svg.Path):
-        def __init__(self, **kwargs):
-            data_info = kwargs.pop("data_info", None)
-            if data_info:
-                kwargs["data"] = {"info": data_info}
-            super().__init__(**kwargs)
 
     def draw_boat(x, y, scale=1.0):
         return svg.G(
@@ -1697,13 +1721,11 @@ def _(svg):
             elements=elements,
         )
 
-    return DataCircle, DataPath, draw_person, draw_rowboat
+    return draw_person, draw_rowboat
 
 
 @app.cell
 def _(
-    DataCircle,
-    DataPath,
     draw_person,
     draw_rowboat,
     graph_2_1_data,
@@ -1736,6 +1758,20 @@ def _(
                 if data_info:
                     kwargs["data"] = {"info": data_info}
                 super().__init__(**kwargs)
+        class DataCircle(svg.Circle):
+            def __init__(self, **kwargs):
+                data_info = kwargs.pop("data_info", None)
+                if data_info:
+                    kwargs["data"] = {"info": data_info}
+                super().__init__(**kwargs)
+    
+        class DataPath(svg.Path):
+            def __init__(self, **kwargs):
+                data_info = kwargs.pop("data_info", None)
+                if data_info:
+                    kwargs["data"] = {"info": data_info}
+                super().__init__(**kwargs)
+        
         def format_duration(hours):
             h = float(hours)
             days = int(h // 24)
