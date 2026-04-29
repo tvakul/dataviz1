@@ -620,9 +620,11 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, pd, svg):
                 continue
             gx, gy = cloud_pos[top_id]
             stop = safe_id(top_id)
+            # Increase thickness for visibility, especially for neutral/low sentiment topics
             stroke_w = max(0.8, abs(p_sent) * 10)
             if top_id in both_topic_ids:
-                col = "black" # Black for 'both' topics
+                col = "gray" # Black for 'both' topics
+                stroke_w = max(0.8, abs(p_raw) * 10)
             else:
                 col = color_for(p_sent)
 
