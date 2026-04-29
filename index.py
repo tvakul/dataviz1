@@ -284,6 +284,8 @@ def _(Counter, bias_persons, defaultdict, math, mo, nodes, svg):
 
     def color_for(s):
         t = min(abs(s), 1.0)
+        if t > 0:
+            t = 0.4 + t * 0.8
         return interp(t, (255, 255, 255),
                       (46, 204, 113) if s >= 0 else (231, 76, 60))
 
