@@ -1045,10 +1045,10 @@ def _():
 @app.cell
 def _(mo, pd):
     try:
-        df = pd.read_json(str(mo.notebook_location() / "data" / "people_participation_summary.json"))
+        df_jour = pd.read_json(str(mo.notebook_location() / "data" / "people_participation_summary.json"))
     except:
-        df = pd.read_json("https://raw.githubusercontent.com/tvakul/dataviz1/refs/heads/main/data/people_participation_summary.json")
-    return (df,)
+        df_jour = pd.read_json("https://raw.githubusercontent.com/tvakul/dataviz1/refs/heads/main/data/people_participation_summary.json")
+    return (df_jour,)
 
 
 @app.cell
@@ -1061,9 +1061,19 @@ def _(mo, pd):
 
 
 @app.cell
-def _(df, mo):
+def _(mo, pd):
+    try:
+        df_gov = pd.read_json(str(mo.notebook_location() / "data" / "people_participation_summary_gov.json"))
+    except:
+        df_gov = pd.read_json("https://raw.githubusercontent.com/tvakul/dataviz1/refs/heads/main/data/people_participation_summary_gov.json")
+    return (df_gov,)
+
+
+@app.cell
+def _(df_gov, df_jour, mo):
     metrics = ['num_topics', 'num_meetings', 'num_discussions', 'num_plans']
-    df[metrics] = df[metrics].fillna(0)
+    df_jour[metrics] = df_jour[metrics].fillna(0)
+    df_gov[metrics] = df_gov[metrics].fillna(0)
 
     focus_colors = {
         'fishing': '#2ca02c',  
@@ -1081,17 +1091,19 @@ def _(df, mo):
     }
 
     # UI Checkboxes
-    all_people = sorted(df['people_id'].dropna().unique())
-    all_focuses = sorted(df['focus'].dropna().unique())
+    all_people = sorted(df_jour['people_id'].dropna().unique())
+    all_focuses = sorted(df_jour['focus'].dropna().unique())
 
     people_ui = mo.ui.dictionary({p: mo.ui.checkbox(value=True, label=p) for p in all_people})
     focus_ui = mo.ui.dictionary({f: mo.ui.checkbox(value=True, label=f) for f in all_focuses})
-    return focus_colors, focus_ui, metrics, people_ui
+    source_ui = mo.ui.dropdown(options=["Government data", "Journalist data"], value="Journalist data", label="Data sources")
+    return focus_colors, focus_ui, metrics, people_ui, source_ui
 
 
 @app.cell
 def _(
-    df,
+    df_gov,
+    df_jour,
     df_totals,
     focus_colors,
     focus_ui,
@@ -1100,11 +1112,17 @@ def _(
     mo,
     pd,
     people_ui,
+    source_ui,
     svg,
 ):
 
     selected_people = [p for p, active in people_ui.value.items() if active]
     selected_focuses = [f for f, active in focus_ui.value.items() if active]
+
+    if source_ui.value == "Journalist data":
+        df = df_jour
+    else:
+        df = df_gov
 
     filtered_df = df[
         (df['people_id'].isin(selected_people)) & 
@@ -1264,7 +1282,8 @@ def _(
                 mo.Html(svg_obj.as_str()),
                 mo.vstack([
                     mo.vstack([mo.md("**Select People:**"), people_ui]),
-                    mo.vstack([mo.md("**Select Focus Types:**"), focus_ui])
+                    mo.vstack([mo.md("**Select Focus Types:**"), focus_ui]),
+                    mo.vstack([mo.md("**Select Data Source:**"), source_ui])
             ])
         ])
     ])
